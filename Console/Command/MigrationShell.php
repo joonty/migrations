@@ -26,46 +26,48 @@ App::uses('MigrationVersion', 'Migrations.Lib');
  */
 class MigrationShell extends Shell {
 
-/**
- * Connection used
- *
- * @var string
- */
+	/**
+	 * Connection used
+	 *
+	 * @var string
+	 */
 	public $connection = 'default';
 
-/**
- * Current path to load and save migrations
- *
- * @var string
- */
+	/**
+	 * Current path to load and save migrations
+	 *
+	 * @var string
+	 */
 	public $path;
 
-/**
- * Type of migration, can be 'app' or a plugin name
- *
- * @var string
- */
+	/**
+	 * Type of migration, can be 'app' or a plugin name
+	 *
+	 * @var string
+	 */
 	public $type = 'app';
 
-/**
- * MigrationVersion instance
- *
- * @var MigrationVersion
- */
+	/**
+	 * MigrationVersion instance
+	 *
+	 * @var MigrationVersion
+	 */
 	public $Version;
 
-/**
- * Messages used to display action being performed
- *
- * @var array
- */
+	/**
+	 * Messages used to display action being performed
+	 *
+	 * @var array
+	 */
 	private $__messages = array();
 
-/**
- * Override startup
- *
- * @return void
- */
+	private $isInteractive = true;
+
+	/**
+	 * Override startup
+	 *
+	 * @return void
+	 */
 	public function startup() {
 		$this->_welcome();
 		$this->out(__d('Migrations', 'Cake Migration Shell'));
@@ -76,6 +78,9 @@ class MigrationShell extends Shell {
 		}
 		if (!empty($this->params['plugin'])) {
 			$this->type = $this->params['plugin'];
+		}
+		if ($this->params['non-interactive']) {
+			$this->isInteractive = false;
 		}
 		$this->path = $this->_getPath() . 'Config' . DS . 'Migration' . DS;
 
@@ -96,95 +101,97 @@ class MigrationShell extends Shell {
 		);
 	}
 
-/**
- * get the option parser.
- *
- * @return void
- */
+	/**
+	 * get the option parser.
+	 */
 	public function getOptionParser() {
 		$parser = parent::getOptionParser();
 		return $parser->description(
-			'The Migration shell.' . 
-			'')
+			'The Migration shell.' .
+				'')
 			->addOption('plugin', array(
-					'short' => 'p', 
-					'help' => __('Plugin name to be used')))
+			'short' => 'p',
+			'help' => __('Plugin name to be used')))
 			->addOption('force', array(
-					'short' => 'f',
-					'boolean' => true,
-					'help' => __('Force \'generate\' to compare all tables.')))
+			'short' => 'f',
+			'boolean' => true,
+			'help' => __('Force \'generate\' to compare all tables.')))
+			->addOption('non-interactive', array(
+			'short' => 'i',
+			'boolean' => true,
+			'default'=>false,
+			'help' => __('Run interactively (i.e. with user input required).')))
 			->addOption('connection', array(
-					'short' => 'c', 
-					'default' => 'default',
-					'help' => __('Set db config <config>. Uses \'default\' if none is specified.')))
+			'short' => 'c',
+			'default' => 'default',
+			'help' => __('Set db config <config>. Uses \'default\' if none is specified.')))
 			->addSubcommand('status', array(
-				'help' => __('Displays a status of all plugin and app migrations.')))
+			'help' => __('Displays a status of all plugin and app migrations.')))
 			->addSubcommand('all', array(
-				'help' => __('Bake a complete MVC. optional <name> of a Model')))
+			'help' => __('Bake a complete MVC. optional <name> of a Model')))
 			->addSubcommand('run', array(
-				'help' => __('Run a migration to given direction or version.')))
+			'help' => __('Run a migration to given direction or version.')))
 			->addSubcommand('generate', array(
-				'help' => __('Generates a migration file.')))
+			'help' => __('Generates a migration file.')))
 			->addSubcommand('add', array(
-				'help' => __('Generates a migration file.')))
-			// ->addSubcommand('help', array(
-				// 'help' => __('Run a migration to given direction or version.')))
+			'help' => __('Generates a migration file.')))// ->addSubcommand('help', array(
+			// 'help' => __('Run a migration to given direction or version.')))
 			// )->addArgument('name', array(
-				// 'help' => __('Name of the model to bake. Can use Plugin.name to bake plugin models.')
+			// 'help' => __('Name of the model to bake. Can use Plugin.name to bake plugin models.')
 			// )->addArgument('outdated', array(
-				// 'help' => __('')
+			// 'help' => __('')
 			;
-/*
+		/*
 
-The Migration database management for CakePHP
----------------------------------------------------------------
-Usage: cake migration <command> <param1> <param2>...
----------------------------------------------------------------
-Params:
-	-connection <config>
-		Set db config <config>. Uses 'default' if none is specified.
+  The Migration database management for CakePHP
+  ---------------------------------------------------------------
+  Usage: cake migration <command> <param1> <param2>...
+  ---------------------------------------------------------------
+  Params:
+	  -connection <config>
+		  Set db config <config>. Uses 'default' if none is specified.
 
-	-plugin
-		Plugin name to be used
+	  -plugin
+		  Plugin name to be used
 
-	-f
-		Force 'generate' to compare all tables.
+	  -f
+		  Force 'generate' to compare all tables.
 
-Commands:
-	migration help
-		Shows this help message.
+  Commands:
+	  migration help
+		  Shows this help message.
 
-	migration run <up|down|all|reset|version>
-		Run a migration to given direction or version.
-		Provide a version number to get directly to the version.
-		You can also use all to apply all migrations or reset to unapply all.
+	  migration run <up|down|all|reset|version>
+		  Run a migration to given direction or version.
+		  Provide a version number to get directly to the version.
+		  You can also use all to apply all migrations or reset to unapply all.
 
-	migration <generate|add>
-		Generates a migration file.
-		To force generation of all tables when making a comparison/dump, use the -f param.
+	  migration <generate|add>
+		  Generates a migration file.
+		  To force generation of all tables when making a comparison/dump, use the -f param.
 
-	migration status <outdated>
-		Displays a status of all plugin and app migrations.
+	  migration status <outdated>
+		  Displays a status of all plugin and app migrations.
 
 
-*/		
-		
+  */
+
 	}
 
-/**
- * Override main
- *
- * @return void
- */
+	/**
+	 * Override main
+	 *
+	 * @return void
+	 */
 	public function main() {
 		$this->run();
 	}
 
-/**
- * Run the migrations
- *
- * @return void
- */
+	/**
+	 * Run the migrations
+	 *
+	 * @return void
+	 */
 	public function run() {
 		try {
 			$mapping = $this->Version->getMapping($this->type);
@@ -195,7 +202,7 @@ Commands:
 
 		if ($mapping === false) {
 			$this->out(__d('Migrations', 'No migrations available.'));
-			return $this->_stop();
+			return $this->_stop(1);
 		}
 		$latestVersion = $this->Version->getVersion($this->type);
 
@@ -213,57 +220,63 @@ Commands:
 			}
 			if (!isset($mapping[$latestVersion])) {
 				$this->out(__d('Migrations', 'Not a valid migration version.'));
-				return $this->_stop();
+				return $this->_stop(2);
 			}
-		} else if (isset($this->args[0]) && $this->args[0] == 'all') {
-			end($mapping);
-			$options['version'] = key($mapping);
-			$direction = 'up';
-		} else if (isset($this->args[0]) && $this->args[0] == 'reset') {
-			$options['version'] = 0;
-			$direction = 'down';
 		} else {
-			if (isset($this->args[0]) && is_numeric($this->args[0])) {
-				$options['version'] = (int) $this->args[0];
-
-				$valid = isset($mapping[$options['version']]) || ($options['version'] === 0 && $latestVersion > 0);
-				if (!$valid) {
-					$this->out(__d('Migrations', 'Not a valid migration version.'));
-					return $this->_stop();
-				}
+			if (isset($this->args[0]) && $this->args[0] == 'all') {
+				end($mapping);
+				$options['version'] = key($mapping);
+				$direction = 'up';
 			} else {
-				$this->_showInfo($mapping, $this->type);
-				$this->hr();
+				if (isset($this->args[0]) && $this->args[0] == 'reset') {
+					$options['version'] = 0;
+					$direction = 'down';
+				} else {
+					if (isset($this->args[0]) && is_numeric($this->args[0])) {
+						$options['version'] = (int)$this->args[0];
 
-				while (true) {
-					$response = $this->in(__d('Migrations', 'Please, choose what version you want to migrate to. [q]uit or [c]lean.'));
-					if (strtolower($response) === 'q') {
-						return $this->_stop();
-					} else if (strtolower($response) === 'c') {
-						$this->_clear();
-						continue;
-					}
-
-					$valid = is_numeric($response) &&
-						(isset($mapping[(int) $response]) || ((int) $response === 0 && $latestVersion > 0));
-					if ($valid) {
-						$options['version'] = (int) $response;
-						if ((int) $response <= $latestVersion) {
-							$direction = 'down';
-						} else {
-							$direction = 'up';
+						$valid = isset($mapping[$options['version']]) || ($options['version'] === 0 && $latestVersion > 0);
+						if (!$valid) {
+							$this->out(__d('Migrations', 'Not a valid migration version.'));
+							return $this->_stop(3);
 						}
-						break;
 					} else {
-						$this->out(__d('Migrations', 'Not a valid migration version.'));
+						$this->_showInfo($mapping, $this->type);
+						$this->hr();
+
+						while (true) {
+							$response = $this->in(__d('Migrations', 'Please, choose what version you want to migrate to. [q]uit or [c]lean.'));
+							if (strtolower($response) === 'q') {
+								return $this->_stop(4);
+							} else {
+								if (strtolower($response) === 'c') {
+									$this->_clear();
+									continue;
+								}
+							}
+
+							$valid = is_numeric($response) &&
+								(isset($mapping[(int)$response]) || ((int)$response === 0 && $latestVersion > 0));
+							if ($valid) {
+								$options['version'] = (int)$response;
+								if ((int)$response <= $latestVersion) {
+									$direction = 'down';
+								} else {
+									$direction = 'up';
+								}
+								break;
+							} else {
+								$this->out(__d('Migrations', 'Not a valid migration version.'));
+							}
+						}
+						$this->hr();
 					}
 				}
-				$this->hr();
 			}
 		}
 
 		$this->out(__d('Migrations', 'Running migrations:'));
-		
+
 		try {
 			$this->Version->run($options);
 		} catch (MigrationException $e) {
@@ -272,16 +285,22 @@ Commands:
 			$this->out('  ' . sprintf(__d('Migrations', 'Error: %s'), $e->getMessage()));
 
 			$this->hr();
-			
-			$response = $this->in(__d('Migrations', 'Do you want to mark the migration as successful?. [y]es or [a]bort.'), array('y', 'a'));
-				
+
+			if ($this->isInteractive) {
+				$response = $this->in(__d('Migrations', 'Do you want to mark the migration as successful?. [y]es or [a]bort.'), array('y', 'a'));
+			} else {
+				$response = 'y';
+			}
+
 			if (strtolower($response) === 'y') {
 				$this->Version->setVersion($e->Migration->info['version'], $this->type, ($direction == 'up'));
 				if (!$once) {
 					return $this->run();
-				} 
-			} else if (strtolower($response) === 'a') {
-				return $this->_stop();
+				}
+			} else {
+				if (strtolower($response) === 'a') {
+					return $this->_stop(5);
+				}
 			}
 			$this->hr();
 		}
@@ -292,11 +311,11 @@ Commands:
 	}
 
 
-/**
- * Generate a new migration file
- *
- * @return void
- */
+	/**
+	 * Generate a new migration file
+	 *
+	 * @return void
+	 */
 	public function generate() {
 		$fromSchema = false;
 		$this->Schema = $this->_getSchema();
@@ -315,7 +334,7 @@ Commands:
 				$newSchema = $this->_readSchema();
 				$comparison = $this->Schema->compare($oldSchema, $newSchema);
 				$migration = $this->_fromComparison($migration, $comparison, $oldSchema->tables, $newSchema['tables']);
-				
+
 				$fromSchema = true;
 			}
 		} else {
@@ -339,7 +358,7 @@ Commands:
 		$class = 'M' . str_replace('-', '', String::uuid());
 		$response = $this->in(__d('Migrations', 'Do you want to preview the file before generation?'), array('y', 'n'), 'y');
 		if (strtolower($response) === 'y') {
-			$this->out($this->_generateMigration('',$class,$migration));
+			$this->out($this->_generateMigration('', $class, $migration));
 		}
 
 		while (true) {
@@ -386,20 +405,20 @@ Commands:
 		}
 	}
 
-/**
- * Generate a new migration file
- *
- * @see generate
- */
+	/**
+	 * Generate a new migration file
+	 *
+	 * @see generate
+	 */
 	public function add() {
 		return $this->generate();
 	}
 
-/**
- * Displays a status of all plugin and app migrations
- *
- * @return void
- */
+	/**
+	 * Displays a status of all plugin and app migrations
+	 *
+	 * @return void
+	 */
 	public function status() {
 		$types = CakePlugin::loaded();
 		ksort($types);
@@ -438,11 +457,11 @@ Commands:
 		}
 	}
 
-/**
- * Displays help contents
- *
- * @return void
- */
+	/**
+	 * Displays help contents
+	 *
+	 * @return void
+	 */
 	public function help() {
 		$help = <<<TEXT
 The Migration database management for CakePHP
@@ -480,13 +499,13 @@ TEXT;
 		$this->_stop();
 	}
 
-/**
- * Shows a list of available migrations
- *
- * @param array $mapping Migration mapping
- * @param string $type Can be 'app' or a plugin name
- * @return void
- */
+	/**
+	 * Shows a list of available migrations
+	 *
+	 * @param array $mapping Migration mapping
+	 * @param string $type Can be 'app' or a plugin name
+	 * @return void
+	 */
 	protected function _showInfo($mapping, $type = null) {
 		if ($type === null) {
 			$type = $this->type;
@@ -513,24 +532,24 @@ TEXT;
 		}
 	}
 
-/**
- * Clear the console
- *
- * @return void
- */
+	/**
+	 * Clear the console
+	 *
+	 * @return void
+	 */
 	protected function _clear() {
 		$this->Dispatch->clear();
 	}
 
-/**
- * Generate a migration string using comparison
- *
- * @param array $migration Migration instructions array
- * @param array $comparison Result from CakeSchema::compare()
- * @param array $oldTables List of tables on schema.php file
- * @param array $currentTables List of current tables on database
- * @return array
- */
+	/**
+	 * Generate a migration string using comparison
+	 *
+	 * @param array $migration Migration instructions array
+	 * @param array $comparison Result from CakeSchema::compare()
+	 * @param array $oldTables List of tables on schema.php file
+	 * @param array $currentTables List of current tables on database
+	 * @return array
+	 */
 	protected function _fromComparison($migration, $comparison, $oldTables, $currentTables) {
 		foreach ($comparison as $table => $actions) {
 			if (!isset($oldTables[$table])) {
@@ -553,21 +572,23 @@ TEXT;
 					if (!empty($indexes['indexes'])) {
 						$migration['down']['drop_field'][$table]['indexes'] = array_keys($indexes['indexes']);
 					}
-				} else if ($type == 'change') {
-					foreach ($fields as $name => $col) {
-						if (!empty($oldTables[$table][$name]['length']) && substr($col['type'], 0, 4) == 'date') {
-							$fields[$name]['length'] = null;
-						}
-					}
-					$migration['up']['alter_field'][$table] = $fields;
-					$migration['down']['alter_field'][$table] = array_intersect_key($oldTables[$table], $fields);
 				} else {
-					$migration['up']['drop_field'][$table] = array_keys($fields);
-					if (!empty($indexes['indexes'])) {
-						$migration['up']['drop_field'][$table]['indexes'] = array_keys($indexes['indexes']);
-					}
+					if ($type == 'change') {
+						foreach ($fields as $name => $col) {
+							if (!empty($oldTables[$table][$name]['length']) && substr($col['type'], 0, 4) == 'date') {
+								$fields[$name]['length'] = null;
+							}
+						}
+						$migration['up']['alter_field'][$table] = $fields;
+						$migration['down']['alter_field'][$table] = array_intersect_key($oldTables[$table], $fields);
+					} else {
+						$migration['up']['drop_field'][$table] = array_keys($fields);
+						if (!empty($indexes['indexes'])) {
+							$migration['up']['drop_field'][$table]['indexes'] = array_keys($indexes['indexes']);
+						}
 
-					$migration['down']['create_field'][$table] = array_merge($fields, $indexes);
+						$migration['down']['create_field'][$table] = array_merge($fields, $indexes);
+					}
 				}
 			}
 		}
@@ -581,12 +602,12 @@ TEXT;
 		return $migration;
 	}
 
-/**
- * Load and construct the schema class if exists
- *
- * @param string $type Can be 'app' or a plugin name
- * @return mixed False in case of no file found, schema object
- */
+	/**
+	 * Load and construct the schema class if exists
+	 *
+	 * @param string $type Can be 'app' or a plugin name
+	 * @return mixed False in case of no file found, schema object
+	 */
 	protected function _getSchema($type = null) {
 		if ($type === null) {
 			$plugin = ($this->type === 'app') ? null : $this->type;
@@ -610,11 +631,11 @@ TEXT;
 		return $schema;
 	}
 
-/**
- * Reads the schema data
- *
- * @return array
- */
+	/**
+	 * Reads the schema data
+	 *
+	 * @return array
+	 */
 	protected function _readSchema() {
 		$read = $this->Schema->read(array('models' => !$this->params['force']));
 		if ($this->type !== 'migrations') {
@@ -623,11 +644,11 @@ TEXT;
 		return $read;
 	}
 
-/**
- * Update the schema, making a call to schema shell
- *
- * @return void
- */
+	/**
+	 * Update the schema, making a call to schema shell
+	 *
+	 * @return void
+	 */
 	protected function _updateSchema() {
 		$command = 'schema generate --connection ' . $this->connection;
 		if (!empty($this->params['plugin'])) {
@@ -639,14 +660,14 @@ TEXT;
 		$this->dispatchShell($command);
 	}
 
-/**
- * Generate a migration
- *
- * @param string $name Name of migration
- * @param string $class Class name of migration
- * @param array $migration Migration instructions array
- * @return string
- */
+	/**
+	 * Generate a migration
+	 *
+	 * @param string $name Name of migration
+	 * @param string $class Class name of migration
+	 * @param array $migration Migration instructions array
+	 * @return string
+	 */
 	protected function _generateMigration($name, $class, $migration) {
 		$content = '';
 		foreach ($migration as $direction => $actions) {
@@ -660,7 +681,7 @@ TEXT;
 							if ($field == 'indexes') {
 								$content .= "\t\t\t\t\t'indexes' => array(\n";
 								foreach ($col as $index => $key) {
-									$content .= "\t\t\t\t\t\t'" . $index . "' => array(" . implode(', ',  $this->__values($key)) . "),\n";
+									$content .= "\t\t\t\t\t\t'" . $index . "' => array(" . implode(', ', $this->__values($key)) . "),\n";
 								}
 								$content .= "\t\t\t\t\t),\n";
 							} else {
@@ -668,27 +689,31 @@ TEXT;
 								if (is_string($col)) {
 									$content .= "'" . $col . "',\n";
 								} else {
-									$content .= 'array(' . implode(', ',  $this->__values($col)) . "),\n";
+									$content .= 'array(' . implode(', ', $this->__values($col)) . "),\n";
 								}
 							}
 						}
 						$content .= "\t\t\t\t),\n";
 					}
-				} else if ($type == 'drop_table') {
-					$content .= "\t\t\t\t'" . implode("', '", $tables) . "'\n";
-				} else if ($type == 'drop_field') {
-					foreach ($tables as $table => $fields) {
-						$indexes = array();
-						if (!empty($fields['indexes'])) {
-							$indexes = $fields['indexes'];
-						}
-						unset($fields['indexes']);
+				} else {
+					if ($type == 'drop_table') {
+						$content .= "\t\t\t\t'" . implode("', '", $tables) . "'\n";
+					} else {
+						if ($type == 'drop_field') {
+							foreach ($tables as $table => $fields) {
+								$indexes = array();
+								if (!empty($fields['indexes'])) {
+									$indexes = $fields['indexes'];
+								}
+								unset($fields['indexes']);
 
-						$content .= "\t\t\t\t'" . $table . "' => array('" . implode("', '", $fields) . "',";
-						if (!empty($indexes)) {
-							$content .= " 'indexes' => array('" . implode("', '", $indexes) . "')";
+								$content .= "\t\t\t\t'" . $table . "' => array('" . implode("', '", $fields) . "',";
+								if (!empty($indexes)) {
+									$content .= " 'indexes' => array('" . implode("', '", $indexes) . "')";
+								}
+								$content .= "),\n";
+							}
 						}
-						$content .= "),\n";
 					}
 				}
 				$content .= "\t\t\t),\n";
@@ -699,14 +724,14 @@ TEXT;
 		return $content;
 	}
 
-/**
- * Write a migration with given name
- *
- * @param string $name Name of migration
- * @param string $class Class name of migration
- * @param array $migration Migration instructions array
- * @return boolean
- */
+	/**
+	 * Write a migration with given name
+	 *
+	 * @param string $name Name of migration
+	 * @param string $class Class name of migration
+	 * @param array $migration Migration instructions array
+	 * @return boolean
+	 */
 	protected function _writeMigration($name, $class, $migration) {
 		$content = '';
 		$content = $this->_generateMigration($name, $class, $migration);
@@ -714,12 +739,12 @@ TEXT;
 		return $File->write($content);
 	}
 
-/**
- * Generate and write the map file
- *
- * @param array $map List of migrations
- * @return boolean
- */
+	/**
+	 * Generate and write the map file
+	 *
+	 * @param array $map List of migrations
+	 * @return boolean
+	 */
 	protected function _writeMap($map) {
 		$content = "<?php\n";
 		$content .= "\$map = array(\n";
@@ -735,34 +760,36 @@ TEXT;
 		return $File->write($content);
 	}
 
-/**
- * Format a array/string into a one-line syntax
- *
- * @param array $values Array to be converted
- * @return string
- */
+	/**
+	 * Format a array/string into a one-line syntax
+	 *
+	 * @param array $values Array to be converted
+	 * @return string
+	 */
 	private function __values($values) {
 		$_values = array();
 		if (is_array($values)) {
 			foreach ($values as $key => $value) {
 				if (is_array($value)) {
-					$_values[] = "'" . $key . "' => array('" . implode("', '",  $value) . "')";
-				} else if (!is_numeric($key)) {
-					$value = var_export($value, true);					
-					$_values[] = "'" . $key . "' => " . $value;
+					$_values[] = "'" . $key . "' => array('" . implode("', '", $value) . "')";
+				} else {
+					if (!is_numeric($key)) {
+						$value = var_export($value, true);
+						$_values[] = "'" . $key . "' => " . $value;
+					}
 				}
 			}
 		}
 		return $_values;
 	}
 
-/**
- * Include and generate a template string based on a template file
- *
- * @param string $template Template file name
- * @param array $vars List of variables to be used on tempalte
- * @return string
- */
+	/**
+	 * Include and generate a template string based on a template file
+	 *
+	 * @param string $template Template file name
+	 * @param array $vars List of variables to be used on tempalte
+	 * @return string
+	 */
 	private function __generateTemplate($template, $vars) {
 		extract($vars);
 		ob_start();
@@ -773,12 +800,12 @@ TEXT;
 		return $content;
 	}
 
-/**
- * Return the path used
- *
- * @param string $type Can be 'app' or a plugin name
- * @return string Path used
- */
+	/**
+	 * Return the path used
+	 *
+	 * @param string $type Can be 'app' or a plugin name
+	 * @return string Path used
+	 */
 	protected function _getPath($type = null) {
 		if ($type === null) {
 			$type = $this->type;
@@ -789,36 +816,36 @@ TEXT;
 		return APP;
 	}
 
-/**
- * Callback used to display what migration is being runned
- *
- * @param CakeMigration $Migration Migration being performed
- * @param string $direction Direction being runned
- * @return void
- */
+	/**
+	 * Callback used to display what migration is being runned
+	 *
+	 * @param CakeMigration $Migration Migration being performed
+	 * @param string $direction Direction being runned
+	 * @return void
+	 */
 	public function beforeMigration(&$Migration, $direction) {
 		$this->out('  [' . number_format($Migration->info['version'] / 100, 2, '', '') . '] ' . $Migration->info['name']);
 	}
 
-/**
- * Callback used to create a new line after the migration
- *
- * @param CakeMigration $Migration Migration being performed
- * @param string $direction Direction being runned
- * @return void
- */
+	/**
+	 * Callback used to create a new line after the migration
+	 *
+	 * @param CakeMigration $Migration Migration being performed
+	 * @param string $direction Direction being runned
+	 * @return void
+	 */
 	public function afterMigration(&$Migration, $direction) {
 		$this->out('');
 	}
 
-/**
- * Callback used to display actions being performed
- *
- * @param CakeMigration $Migration Migration being performed
- * @param string $type Type of action. i.e: create_table, drop_table, etc.
- * @param array $data Data to send to the callback
- * @return void
- */
+	/**
+	 * Callback used to display actions being performed
+	 *
+	 * @param CakeMigration $Migration Migration being performed
+	 * @param string $type Type of action. i.e: create_table, drop_table, etc.
+	 * @param array $data Data to send to the callback
+	 * @return void
+	 */
 	public function beforeAction(&$Migration, $type, $data) {
 		if (isset($this->__messages[$type])) {
 			$message = String::insert($this->__messages[$type], $data);
@@ -826,5 +853,6 @@ TEXT;
 		}
 	}
 }
+
 ?>
 
