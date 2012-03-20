@@ -133,6 +133,8 @@ class MigrationShell extends Shell {
 			'help' => __('Run a migration to given direction or version.')))
 			->addSubcommand('generate', array(
 			'help' => __('Generates a migration file.')))
+			->addSubcommand('fastforward', array(
+			'help' => __('Mark all migrations as complete.')))
 			->addSubcommand('add', array(
 			'help' => __('Generates a migration file.')))// ->addSubcommand('help', array(
 			// 'help' => __('Run a migration to given direction or version.')))
@@ -310,6 +312,33 @@ class MigrationShell extends Shell {
 		return true;
 	}
 
+	/**
+	 * Mark all current migrations as completed, without running them.
+	 *
+	 * Useful if "cake schema create" has been called with the current schema.
+	 *
+	 * @return bool
+	 */
+	public function fastforward() {
+
+		try {
+			$mapping = $this->Version->getMapping($this->type);
+		} catch (MigrationVersionException $e) {
+			$this->err($e->getMessage());
+			return false;
+		}
+
+		if ($mapping === false) {
+			$this->out(__d('Migrations', 'No migrations available.'));
+			return $this->_stop(1);
+		}
+		$this->out("Fast-forwarding migrations");
+		foreach ($mapping as $version) {
+			$this->Version->setVersion(current($version), $this->type,true);
+		}
+		$this->out('Complete.');
+		return true;
+	}
 
 	/**
 	 * Generate a new migration file
@@ -398,10 +427,7 @@ class MigrationShell extends Shell {
 		$this->out(__d('Migrations', 'Done.'));
 
 		if ($fromSchema && isset($comparison)) {
-			$response = $this->in(__d('Migrations', 'Do you want update the schema.php file?'), array('y', 'n'), 'y');
-			if (strtolower($response) === 'y') {
-				$this->_updateSchema();
-			}
+			$this->_updateSchema();
 		}
 	}
 
