@@ -1,5 +1,5 @@
 <?php
-class ConvertVersionToClassNames extends CakeMigration {
+class M4ec50d1f7a284842b1b770fdcbdd56cb extends CakeMigration {
 
 /**
  * Migration description
