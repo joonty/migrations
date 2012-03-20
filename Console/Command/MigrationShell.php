@@ -79,7 +79,7 @@ class MigrationShell extends Shell {
 		if (!empty($this->params['plugin'])) {
 			$this->type = $this->params['plugin'];
 		}
-		if ($this->params['non-interactive']) {
+		if ($this->params['noninteractive']) {
 			$this->isInteractive = false;
 		}
 		$this->path = $this->_getPath() . 'Config' . DS . 'Migration' . DS;
@@ -116,11 +116,11 @@ class MigrationShell extends Shell {
 			'short' => 'f',
 			'boolean' => true,
 			'help' => __('Force \'generate\' to compare all tables.')))
-			->addOption('non-interactive', array(
+			->addOption('noninteractive', array(
 			'short' => 'i',
 			'boolean' => true,
 			'default'=>false,
-			'help' => __('Run interactively (i.e. with user input required).')))
+			'help' => __('Run without user interaction (i.e. answer yes to all questions).')))
 			->addOption('connection', array(
 			'short' => 'c',
 			'default' => 'default',
